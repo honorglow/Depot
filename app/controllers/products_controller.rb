@@ -19,6 +19,10 @@ class ProductsController < ApplicationController
       format.html # show.html.erb
       format.json { render json: @product }
     end
+    rescue ActiveRecord::RecordNotFound
+      # CarlosR's implementation: pragprog.com/wikis/wiki/Pt-E-3
+      logger.error "Attempt to access invalid product #{ params[ :id ]}" 
+      redirect_to products_url, :notice => 'Invalid product'
   end
 
   # GET /products/new
