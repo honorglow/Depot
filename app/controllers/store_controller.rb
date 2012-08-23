@@ -2,6 +2,7 @@ class StoreController < ApplicationController
   def index
     increment_counter
     @products = Product.order(:title)
+    @cart = current_cart
     @show_message = "Viewed page " + session[:counter].to_s + " times." if session[:counter] > 5
   end
 
