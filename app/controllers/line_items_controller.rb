@@ -14,15 +14,6 @@ class LineItemsController < ApplicationController
   # GET /line_items/1.json
   def show
     @line_item = LineItem.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.json { render json: @line_item }
-    end
-  end
-  
-  def show
-    @line_item = LineItem.find(params[:id])
     
     respond_to do |format|
       format.html # show.html.erb
@@ -49,30 +40,9 @@ class LineItemsController < ApplicationController
   def edit
     @line_item = LineItem.find(params[:id])
   end
-
+  
   # POST /line_items
   # POST /line_items.json
-  # old create: def create
-  # old create:     @cart = current_cart
-  # old create:     product = Product.find(params[:product_id])
-  # old create:     @line_item = @cart.add_product(product.id)
-    
-    # re-factored into cart model: @line_item = @cart.line_items.build(product: product)
-    # before: @line_item = LineItem.new(params[:line_item])
-  # old create:     session[:counter] = 0
-
-  # old create:     respond_to do |format|
-  # old create:       if @line_item.save
-  # old create:         # before format.html { redirect_to @line_item, notice: 'Line item was successfully created.' }
-  # old create:         format.html { redirect_to @line_item.cart }
-  # old create:         format.json { render json: @line_item, status: :created, location: @line_item }
-  # old create:       else
-  # old create:         format.html { render action: "new" }
-  # old create:         format.json { render json: @line_item.errors, status: :unprocessable_entity }
-  # old create:       end
-  # old create:     end
-  # old create:   end
-  
   def create
     @cart = current_cart
     product = Product.find(params[:product_id])
@@ -86,10 +56,10 @@ class LineItemsController < ApplicationController
       if @line_item.save
         # old non-ajax: format.html { redirect_to(@line_item.cart) }
         format.html { redirect_to store_url }
-        format.js { @current_item = @line_item}
+        format.js { @current_item = @line_item }
         format.json { render json: @line_item, status: :created, location: @line_item }
       else
-        format.html { render :action => "new" }
+        format.html { render action: "new" }
         format.json { render json: @line_item.errors, status: :unprocessable_entity }
       end
     end
@@ -125,6 +95,32 @@ class LineItemsController < ApplicationController
       # not working format.json { head :no_content }
       format.html { redirect_to(@line_item.cart, :notice => 'Item has been removed from your cart.') }
       format.json  { head :ok }
+    end
+  end
+  
+  # PUT /line_items/1
+  # PUT /line_items/1.json
+  def decrement
+    @cart = current_cart
+
+    # 1st way: decrement through method in @cart
+    logger.info "WE GET HERE"
+    @line_item = @cart.decrement_line_item_quantity(params[:id]) # passing in line_item.id
+
+    # 2nd way: decrement through method in @line_item
+    #@line_item = @cart.line_items.find_by_id(params[:id])
+    #@line_item = @line_item.decrement_quantity(@line_item.id)
+    
+    respond_to do |format|
+      if @line_item.save
+        format.html { redirect_to store_path, notice: 'Line item was successfully updated.' }
+        format.js { @current_item = @line_item }
+        format.json { head :ok }
+      else
+        format.html { render action: "edit" }
+        format.js {@current_item = @line_item}
+        format.json { render json: @line_item.errors, status: :unprocessable_entity }
+      end
     end
   end
   
